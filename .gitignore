@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+build/
+dist/
+*.egg-info/
+
+# TCOD / SDL
+*.log
+
+# Workspace
+.vscode/
+.idea/
+.gemini/
