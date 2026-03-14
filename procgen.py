@@ -8,8 +8,11 @@ import tcod
 from game_map import GameMap
 import tile_types
 
-if TYPE_CHECKING:
-    from entity import Entity
+from entity import Entity, Actor, Item
+from components.fighter import Fighter
+from components.ai import HostileEnemy
+from components.inventory import Inventory
+from components.consumable import HealingConsumable
 
 
 class RectangularRoom:
@@ -97,6 +100,66 @@ def tunnel_between(
         yield x, y
 
 
+def place_entities(
+    room: RectangularRoom | CircularRoom | BlobRoom, 
+    entities: List[Entity], 
+    max_monsters: int,
+    max_items: int,
+) -> None:
+    number_of_monsters = random.randint(0, max_monsters)
+    number_of_items = random.randint(0, max_items)
+
+    for i in range(number_of_monsters):
+        # Choose a random spot in the room (from its inner tiles)
+        inner_tiles = list(room.inner)
+        if not inner_tiles:
+            continue
+        x, y = random.choice(inner_tiles)
+
+        if not any(entity.x == x and entity.y == y for entity in entities):
+            if random.random() < 0.8:
+                entities.append(
+                    Actor(
+                        x=x,
+                        y=y,
+                        char="o",
+                        color=(63, 127, 63),
+                        name="Orc",
+                        ai_cls=HostileEnemy,
+                        fighter=Fighter(hp=10, defense=0, power=3),
+                        inventory=Inventory(capacity=0),
+                    )
+                )
+            else:
+                entities.append(
+                    Actor(
+                        x=x,
+                        y=y,
+                        char="T",
+                        color=(0, 127, 0),
+                        name="Troll",
+                        ai_cls=HostileEnemy,
+                        fighter=Fighter(hp=16, defense=1, power=4),
+                        inventory=Inventory(capacity=0),
+                    )
+                )
+
+    for i in range(number_of_items):
+        x, y = random.choice(list(room.inner))
+
+        if not any(entity.x == x and entity.y == y for entity in entities):
+            entities.append(
+                Item(
+                    x=x,
+                    y=y,
+                    char="!",
+                    color=(127, 0, 255),
+                    name="Health Potion",
+                    consumable=HealingConsumable(amount=5),
+                )
+            )
+
+
 def generate_dungeon(
     max_rooms: int,
     room_min_size: int,
@@ -108,6 +171,7 @@ def generate_dungeon(
 ) -> GameMap:
     """Generate a new dungeon map."""
     dungeon = GameMap(map_width, map_height)
+    entities = [player, stairs]
 
     rooms: List[Any] = []
 
@@ -117,18 +181,18 @@ def generate_dungeon(
         if room_type < 0.6:  # 60% rectangles
             room_width = random.randint(room_min_size, room_max_size)
             room_height = random.randint(room_min_size, room_max_size)
-            x = random.randint(0, dungeon.width - room_width - 1)
-            y = random.randint(0, dungeon.height - room_height - 1)
+            x = random.randint(1, dungeon.width - room_width - 1)
+            y = random.randint(1, dungeon.height - room_height - 1)
             new_room = RectangularRoom(x, y, room_width, room_height)
         elif room_type < 0.8:  # 20% circles
             radius = random.randint(room_min_size // 2, room_max_size // 2)
-            x = random.randint(radius, dungeon.width - radius - 1)
-            y = random.randint(radius, dungeon.height - radius - 1)
+            x = random.randint(radius + 1, dungeon.width - radius - 2)
+            y = random.randint(radius + 1, dungeon.height - radius - 2)
             new_room = CircularRoom(x, y, radius)
         else:  # 20% blobs
             size = random.randint(room_min_size, room_max_size)
-            x = random.randint(5, dungeon.width - 6)
-            y = random.randint(5, dungeon.height - 6)
+            x = random.randint(size + 1, dungeon.width - size - 2)
+            y = random.randint(size + 1, dungeon.height - size - 2)
             new_room = BlobRoom(x, y, size)
 
         # Dig out this rooms inner area.
@@ -144,11 +208,22 @@ def generate_dungeon(
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
                 dungeon.tiles[x, y] = tile_types.floor
 
+        if len(rooms) > 0: # Don't place monsters in the first room
+            place_entities(new_room, entities, 2, 1)
+
         # Finally, append the new room to the list.
         rooms.append(new_room)
 
     # Place stairs in the last room
     stairs.x, stairs.y = rooms[-1].center
 
-    return dungeon
+    # Enforce a mandatory wall perimeter (closing all openings to the screen border)
+    for x in range(dungeon.width):
+        dungeon.tiles[x, 0] = tile_types.wall
+        dungeon.tiles[x, dungeon.height - 1] = tile_types.wall
+    for y in range(dungeon.height):
+        dungeon.tiles[0, y] = tile_types.wall
+        dungeon.tiles[dungeon.width - 1, y] = tile_types.wall
+
+    return dungeon, entities
 

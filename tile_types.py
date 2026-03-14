@@ -46,7 +46,73 @@ wall = new_tile(
     walkable=False,
     transparent=False,
     dark=(ord("#"), (64, 64, 64), (0, 0, 0)),
-    light=(ord("#"), (128, 128, 128), (0, 0, 0)),
+    light=(ord("#"), (200, 200, 200), (0, 0, 0)),
 )
+
+grass = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("."), (0, 64, 0), (0, 0, 0)),
+    light=(ord("\""), (0, 191, 0), (0, 0, 0)),
+)
+
+tree = new_tile(
+    walkable=False,
+    transparent=False,
+    dark=(ord("T"), (0, 48, 0), (0, 0, 0)), # dark green
+    light=(ord("T"), (0, 127, 0), (0, 0, 0)), # light green
+)
+
+corn = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("^"), (128, 128, 0), (0, 0, 0)), # dark yellow
+    light=(ord("^"), (255, 255, 102), (0, 0, 0)), # light yellow corn
+)
+
+road = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord(":"), (64, 64, 64), (0, 0, 0)), # dark gray
+    light=(ord(":"), (128, 128, 128), (0, 0, 0)), # light gray / bold look
+)
+
+water = new_tile(
+    walkable=False,
+    transparent=True,
+    dark=(ord("~"), (0, 0, 64), (0, 0, 127)),
+    light=(ord("~"), (0, 191, 255), (0, 0, 255)),
+)
+
+wood_floor = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("."), (64, 32, 0), (0, 0, 0)),
+    light=(ord("."), (139, 69, 19), (0, 0, 0)),
+)
+
+farm_floor = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("."), (128, 128, 0), (0, 0, 0)), # dark yellow
+    light=(ord("."), (255, 255, 0), (0, 0, 0)), # light yellow
+)
+
+apothecary_floor = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("."), (64, 0, 64), (0, 0, 0)), # dark purple
+    light=(ord("."), (128, 0, 128), (0, 0, 0)), # light purple
+)
+
+cartographer_floor = new_tile(
+    walkable=True,
+    transparent=True,
+    dark=(ord("."), (128, 128, 96), (0, 0, 0)), # dark parchment
+    light=(ord("."), (255, 255, 192), (0, 0, 0)), # light parchment
+)
+
+player_floor = wood_floor
+inn_floor = wood_floor
 
 
